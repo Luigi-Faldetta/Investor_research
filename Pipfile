@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+langchain = "*"
+langchain-openai = "*"
+langchain-community = "*"
+langchainhub = "*"
+langchain-tavily = "*"
+flask = "*"
+python-dotenv = "*"
+requests = "*"
+pydantic = "*"
+cloudinary = "*"
+beautifulsoup4 = "*"
+langchain-google-genai = "*"
+
+[dev-packages]
+black = "*"
+
+[requires]
+python_version = "3.12"
