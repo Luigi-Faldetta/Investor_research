@@ -112,6 +112,9 @@ dmypy.json
 # Claude
 .claude/
 
+# MCP configuration (contains secrets)
+.mcp.json
+
 # OS
 .DS_Store
 Thumbs.db

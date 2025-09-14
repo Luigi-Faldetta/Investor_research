@@ -1920,30 +1920,32 @@
             { title: 'Generating Report', subtitle: 'Compiling comprehensive analysis...' }
         ];
         
-        function startLoadingAnimation(investorName) {
+        function startLoadingAnimation(investorName, isQuickSearch = false) {
             // Reset all steps
             document.querySelectorAll('.progress-step').forEach((step, index) => {
                 step.classList.remove('active', 'completed');
             });
-            
+
             // Set initial loading title
             document.getElementById('loadingTitle').textContent = `Researching ${investorName}`;
             document.getElementById('loadingSubtitle').textContent = loadingMessages[0].subtitle;
             document.getElementById('progressBar').style.width = '0%';
-            
+
             currentStep = 0;
-            
+
             // Start the animation - faster initialization
             setTimeout(() => {
                 advanceLoadingStep();
             }, 650);  // Match actual initialization time
-            
+
             // Set up automatic progression with realistic timing
+            // If searching from quick search tabs, use original speed; otherwise 4x longer
+            const intervalDuration = isQuickSearch ? 6500 : 26000;  // Quick search uses original speed (6500ms), manual search is 4x longer (26000ms)
             loadingInterval = setInterval(() => {
                 if (currentStep < 5) {
                     advanceLoadingStep();
                 }
-            }, 6500);  // Increased by 6 seconds (6000ms) from 500ms
+            }, intervalDuration);
         }
         
         function advanceLoadingStep() {
@@ -2038,8 +2040,14 @@
         
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const investorName = document.getElementById('investorName').value;
+
+            const investorInput = document.getElementById('investorName');
+            const investorName = investorInput.value;
+
+            // Check if this is from quick search
+            const isQuickSearch = investorInput.dataset.isQuickSearch === 'true';
+            // Reset the flag
+            delete investorInput.dataset.isQuickSearch;
             
             // Show loading state with animations
             results.classList.add('active');
@@ -2058,7 +2066,7 @@
             }, 100);
             
             // Start loading animation
-            startLoadingAnimation(investorName);
+            startLoadingAnimation(investorName, isQuickSearch);
             
             try {
                 const formData = new FormData();
@@ -3310,6 +3318,8 @@
             const searchInput = document.getElementById('investorName');
             if (searchInput) {
                 searchInput.value = investorName;
+                // Mark that this is a quick search
+                searchInput.dataset.isQuickSearch = 'true';
                 // Submit the form
                 const form = document.getElementById('searchForm');
                 if (form) {

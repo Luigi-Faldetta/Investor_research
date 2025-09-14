@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from langchain.prompts.prompt import PromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from typing import Tuple, List
 import os
 import time
@@ -229,10 +229,10 @@ def generate_investment_insights(
         partial_variables={"format_instructions": insights_parser.get_format_instructions()}
     )
     
-    llm = ChatGoogleGenerativeAI(
-        temperature=0, 
-        model="gemini-2.5-flash",
-        google_api_key=os.getenv("GEMINI_API_KEY")
+    llm = ChatGroq(
+        temperature=0,
+        model="llama-3.3-70b-versatile",  # Current production model
+        api_key=os.getenv("GROQ_API_KEY")
     )
     # Use rate-limited chain
     formatted_prompt = prompt_template.format(
