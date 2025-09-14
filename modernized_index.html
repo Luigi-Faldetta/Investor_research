@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investor Research Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #2a2a2a;
+            --bg-hover: #333333;
+            --accent-orange: #ff8c00;
+            --accent-blue: #4a90e2;
+            --accent-green: #4ade80;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border-color: #333333;
+            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-heavy: 0 16px 64px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background gradient animation */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 140, 0, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(74, 144, 226, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(74, 222, 128, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+        
+        .header h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .header p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        /* Search Box Styles */
+        .search-box {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 40px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .search-box:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 16px;
+            align-items: stretch;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 18px 24px;
+            font-size: 16px;
+            font-family: inherit;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .search-input:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .search-button {
+            padding: 18px 32px;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, #ff6b00 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .search-button:hover::before {
+            left: 100%;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 140, 0, 0.3);
+        }
+
+        .search-button:active {
+            transform: translateY(0);
+        }
+        
+        .search-button:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .search-button:disabled::before {
+            display: none;
+        }
+        
+        /* Results Container */
+        .results {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .results.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Card Styles */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-orange);
+        }
+        
+        .card h2 {
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        /* Profile Styles */
+        .profile {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 16px;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-orange);
+        }
+        
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover img {
+            transform: scale(1.1);
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-info h3 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .profile-info .title {
+            color: var(--accent-orange);
+            margin-bottom: 16px;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        .profile-info .bio {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .profile-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .profile-links a {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        .profile-links a:hover {
+            background: var(--accent-orange);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+        }
+
+        /* Portfolio Grid */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .portfolio-item {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-orange);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .portfolio-item:hover {
+            transform: translateX(4px);
+            background: var(--bg-hover);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .portfolio-item h4 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .portfolio-item .meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .portfolio-item .meta span {
+            font-size: 12px;
+            padding: 4px 8px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .portfolio-item .description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .company-links {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .company-links a {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .company-links a:hover {
+            background: var(--accent-blue);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Modern Portfolio Visualization */
+        .portfolio-viz {
+            margin-top: 24px;
+        }
+
+        .sector-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sector-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .sector-label {
+            min-width: 120px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+            border-radius: 4px;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+
+        .bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .sector-count {
+            min-width: 60px;
+            text-align: right;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Theme Tags */
+        .theme-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .theme-tag {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-blue) 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .theme-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+        }
+        
+        /* Insight Sections */
+        .insight-section {
+            margin-bottom: 32px;
+        }
+        
+        .insight-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .insight-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        
+        .insight-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .insight-section li {
+            color: var(--text-secondary);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .insight-section li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--accent-orange);
+            font-weight: bold;
+        }
+
+        .insight-section li:hover {
+            color: var(--text-primary);
+            padding-left: 24px;
+        }
+        
+        .insight-section li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Quote Styles */
+        .quote {
+            font-style: italic;
+            color: var(--text-secondary);
+            padding: 20px;
+            border-left: 4px solid var(--accent-orange);
+            margin: 16px 0;
+            background: var(--bg-secondary);
+            border-radius: 0 8px 8px 0;
+            position: relative;
+        }
+
+        .quote::before {
+            content: '"';
+            font-size: 3rem;
+            color: var(--accent-orange);
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            font-family: serif;
+        }
+        
+        /* Article and News Styles */
+        .article, .news-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article::before, .news-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-blue);
+            transition: width 0.3s ease;
+        }
+
+        .news-item::before {
+            background: var(--accent-orange);
+        }
+
+        .article:hover::before, .news-item:hover::before {
+            width: 8px;
+        }
+
+        .article:hover, .news-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-light);
+            background: var(--bg-hover);
+        }
+        
+        .article h4, .news-item h4 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .article .excerpt, .news-item .excerpt {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .article .meta, .news-item .meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+        
+        .news-item .source {
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+        
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+        
+        .spinner {
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--accent-orange);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Error States */
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-box {
+                padding: 24px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .profile {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-image {
+                align-self: center;
+            }
+
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sector-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .sector-label {
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px 0;
+                margin-bottom: 40px;
+            }
+
+            .profile-links {
+                justify-content: center;
+            }
+
+            .theme-list {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Investor Research Assistant</h1>
+            <p>AI-powered insights on venture capitalists and their investments</p>
+        </div>
+        
+        <div class="search-box">
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="investorName" 
+                    placeholder="Enter investor name (e.g., Marc Andreessen)" 
+                    required
+                />
+                <button type="submit" class="search-button" id="searchButton">
+                    Research Investor
+                </button>
+            </form>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Researching investor across multiple platforms...</p>
+            </div>
+            
+            <div id="resultsContent" style="display: none;">
+                <!-- Profile Card -->
+                <div class="card" id="profileCard">
+                    <h2>Investor Profile</h2>
+                    <div class="profile">
+                        <div class="profile-image" id="profileImage">
+                            <span>No Image</span>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="investorNameDisplay"></h3>
+                            <p class="title" id="investorTitle"></p>
+                            <p class="bio" id="investorBio"></p>
+                            <div class="profile-links" id="profileLinks"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Portfolio Card -->
+                <div class="card" id="portfolioCard">
+                    <h2>Portfolio Companies</h2>
+                    <div class="portfolio-grid" id="portfolioGrid"></div>
+                </div>
+                
+                <!-- Portfolio Distribution Visualization -->
+                <div class="card" id="chartSection" style="display: none;">
+                    <h2>Portfolio Distribution by Sector</h2>
+                    <div class="portfolio-viz">
+                        <div class="sector-bars" id="sectorBars"></div>
+                    </div>
+                </div>
+                
+                <!-- Insights Card -->
+                <div class="card" id="insightsCard">
+                    <h2>Investment Insights</h2>
+                    
+                    <div class="insight-section">
+                        <h3>Investment Themes</h3>
+                        <div class="theme-list" id="themesList"></div>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Investment Thesis</h3>
+                        <p id="investmentThesis"></p>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Sector Focus</h3>
+                        <ul id="sectorFocus"></ul>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Recent Articles</h3>
+                        <div id="mediumArticles"></div>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Notable Quotes</h3>
+                        <div id="notableQuotes"></div>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Latest News</h3>
+                        <div id="latestNews"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="error" id="error" style="display: none;">
+                <p id="errorMessage"></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchButton = document.getElementById('searchButton');
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const resultsContent = document.getElementById('resultsContent');
+        const error = document.getElementById('error');
+        
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const investorName = document.getElementById('investorName').value;
+            
+            // Show loading state
+            results.classList.add('active');
+            loading.style.display = 'block';
+            resultsContent.style.display = 'none';
+            error.style.display = 'none';
+            searchButton.disabled = true;
+            searchButton.textContent = 'Researching...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('investor_name', investorName);
+                
+                const response = await fetch('/research', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'An error occurred while researching the investor');
+                }
+            } catch (err) {
+                showError('Failed to connect to the server. Please try again.');
+            } finally {
+                loading.style.display = 'none';
+                searchButton.disabled = false;
+                searchButton.textContent = 'Research Investor';
+            }
+        });
+        
+        // Modern portfolio visualization using bars instead of pie chart
+        function createPortfolioVisualization(portfolio) {
+            try {
+                console.log('Creating visualization with portfolio:', portfolio);
+                
+                // Show chart section
+                document.getElementById('chartSection').style.display = 'block';
+                
+                // Group companies by sector
+                const sectorData = {};
+                portfolio.forEach(company => {
+                    const sector = company.sector || 'Other';
+                    sectorData[sector] = (sectorData[sector] || 0) + 1;
+                });
+                
+                console.log('Sector data:', sectorData);
+                
+                // Sort sectors by count
+                const sortedSectors = Object.entries(sectorData)
+                    .sort(([,a], [,b]) => b - a);
+                
+                const total = portfolio.length;
+                const sectorBars = document.getElementById('sectorBars');
+                sectorBars.innerHTML = '';
+                
+                // Create animated bars
+                sortedSectors.forEach(([sector, count], index) => {
+                    const percentage = (count / total) * 100;
+                    
+                    const barElement = document.createElement('div');
+                    barElement.className = 'sector-bar';
+                    barElement.style.animation = `slideInLeft 0.6s ease-out ${index * 0.1}s both`;
+                    
+                    barElement.innerHTML = `
+                        <div class="sector-label">${sector}</div>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="width: 0%" data-width="${percentage}%"></div>
+                        </div>
+                        <div class="sector-count">${count} ${count === 1 ? 'company' : 'companies'}</div>
+                    `;
+                    
+                    sectorBars.appendChild(barElement);
+                });
+                
+                // Animate bars after a short delay
+                setTimeout(() => {
+                    const barFills = document.querySelectorAll('.bar-fill');
+                    barFills.forEach((bar, index) => {
+                        setTimeout(() => {
+                            bar.style.width = bar.dataset.width;
+                        }, index * 100);
+                    });
+                }, 500);
+                
+                console.log('Visualization created successfully');
+                
+            } catch (error) {
+                console.error('Error creating visualization:', error);
+                document.getElementById('chartSection').style.display = 'none';
+            }
+        }
+        
+        function displayResults(data) {
+            resultsContent.style.display = 'block';
+            
+            // Animate cards appearing
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animation = `fadeInUp 0.6s ease-out ${index * 0.1}s both`;
+            });
+            
+            // Display profile
+            document.getElementById('investorNameDisplay').textContent = data.profile.name;
+            document.getElementById('investorTitle').textContent = 
+                `${data.profile.title} at ${data.profile.firm}`;
+            document.getElementById('investorBio').textContent = data.profile.bio;
+            
+            // Display profile image with multiple fallback options
+            const profileImageDiv = document.getElementById('profileImage');
+            const imageUrl = data.profile.profile_image || '';
+            console.log('Profile image URL:', imageUrl);
+            
+            if (imageUrl && imageUrl !== '') {
+                const img = document.createElement('img');
+                img.alt = data.profile.name;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '14px';
+                
+                const fallbackImages = [
+                    imageUrl,
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(data.profile.name)}&size=300&background=ff8c00&color=fff&bold=true`,
+                    `https://robohash.org/${encodeURIComponent(data.profile.name)}?size=300x300`,
+                    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZmOGMwMCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW52ZXN0b3I8L3RleHQ+PC9zdmc+'
+                ];
+                
+                let imageIndex = 0;
+                
+                function tryNextImage() {
+                    if (imageIndex < fallbackImages.length) {
+                        console.log(`Trying image ${imageIndex + 1}:`, fallbackImages[imageIndex]);
+                        img.src = fallbackImages[imageIndex];
+                        imageIndex++;
+                    } else {
+                        profileImageDiv.innerHTML = `<span style="color: var(--text-muted);">👤 ${data.profile.name}</span>`;
+                    }
+                }
+                
+                img.onerror = function() {
+                    console.log('Image failed:', this.src);
+                    tryNextImage();
+                };
+                
+                img.onload = function() {
+                    console.log('Image loaded successfully:', this.src);
+                };
+                
+                profileImageDiv.innerHTML = '';
+                profileImageDiv.appendChild(img);
+                tryNextImage();
+            } else {
+                profileImageDiv.innerHTML = `<span style="color: var(--text-muted);">👤 ${data.profile.name}</span>`;
+            }
+            
+            // Display profile links
+            const profileLinks = document.getElementById('profileLinks');
+            profileLinks.innerHTML = '';
+            
+            const platformOrder = ['twitter', 'linkedin', 'medium', 'crunchbase', 'firm'];
+            const platformLabels = {
+                'twitter': '𝕏 Twitter',
+                'linkedin': '💼 LinkedIn', 
+                'medium': '📝 Medium',
+                'crunchbase': '🏢 Crunchbase',
+                'firm': '🏛️ Firm'
+            };
+            
+            for (const platform of platformOrder) {
+                const url = data.profile.profile_urls[platform];
+                if (url && url !== '') {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.target = '_blank';
+                    link.textContent = platformLabels[platform] || platform.charAt(0).toUpperCase() + platform.slice(1);
+                    profileLinks.appendChild(link);
+                }
+            }
+            
+            // Display portfolio
+            const portfolioGrid = document.getElementById('portfolioGrid');
+            portfolioGrid.innerHTML = '';
+            data.portfolio.forEach((company, index) => {
+                const item = document.createElement('div');
+                item.className = 'portfolio-item';
+                item.style.animation = `fadeInUp 0.6s ease-out ${index * 0.05}s both`;
+                
+                let linksHtml = '';
+                if (company.website || company.yahoo_finance_url) {
+                    linksHtml = '<div class="company-links">';
+                    if (company.website) {
+                        linksHtml += `<a href="${company.website}" target="_blank" rel="noopener noreferrer">
+                                        🌐 Website
+                                    </a>`;
+                    }
+                    if (company.yahoo_finance_url) {
+                        linksHtml += `<a href="${company.yahoo_finance_url}" target="_blank" rel="noopener noreferrer">
+                                        📈 ${company.stock_symbol || 'Stock'}
+                                    </a>`;
+                    }
+                    linksHtml += '</div>';
+                }
+                
+                item.innerHTML = `
+                    <h4>${company.name}</h4>
+                    <div class="meta">
+                        <span>${company.sector}</span>
+                        <span>${company.stage}</span>
+                        <span>${company.investment_date}</span>
+                    </div>
+                    <p class="description">${company.description}</p>
+                    ${linksHtml}
+                `;
+                portfolioGrid.appendChild(item);
+            });
+            
+            // Create modern portfolio visualization
+            if (data.portfolio && data.portfolio.length > 0) {
+                console.log('Creating visualization with', data.portfolio.length, 'companies');
+                createPortfolioVisualization(data.portfolio);
+            } else {
+                console.log('No portfolio data for visualization');
+                document.getElementById('chartSection').style.display = 'none';
+            }
+            
+            // Display insights
+            const themesList = document.getElementById('themesList');
+            themesList.innerHTML = '';
+            data.insights.investment_themes.forEach((theme, index) => {
+                const tag = document.createElement('span');
+                tag.className = 'theme-tag';
+                tag.textContent = theme;
+                tag.style.animation = `fadeInUp 0.6s ease-out ${index * 0.1}s both`;
+                themesList.appendChild(tag);
+            });
+            
+            document.getElementById('investmentThesis').textContent = data.insights.investment_thesis;
+            
+            const sectorFocus = document.getElementById('sectorFocus');
+            sectorFocus.innerHTML = '';
+            data.insights.sector_focus.forEach(sector => {
+                const li = document.createElement('li');
+                li.textContent = sector;
+                sectorFocus.appendChild(li);
+            });
+            
+            const quotesDiv = document.getElementById('notableQuotes');
+            quotesDiv.innerHTML = '';
+            data.insights.notable_quotes.forEach(quote => {
+                const div = document.createElement('div');
+                div.className = 'quote';
+                div.textContent = `${quote}`;
+                quotesDiv.appendChild(div);
+            });
+            
+            // Display Medium articles
+            const mediumArticlesDiv = document.getElementById('mediumArticles');
+            mediumArticlesDiv.innerHTML = '';
+            if (data.medium_articles && data.medium_articles.length > 0) {
+                data.medium_articles.forEach(article => {
+                    const div = document.createElement('div');
+                    div.className = 'article';
+                    div.innerHTML = `
+                        <h4>${article.title}</h4>
+                        <p class="excerpt">${article.excerpt}</p>
+                        <div class="meta">
+                            <span>📅 ${article.date}</span>
+                            <span>⏱️ ${article.read_time}</span>
+                            ${article.claps > 0 ? `<span>👏 ${article.claps}</span>` : ''}
+                        </div>
+                    `;
+                    if (article.url) {
+                        div.style.cursor = 'pointer';
+                        div.onclick = () => window.open(article.url, '_blank');
+                    }
+                    mediumArticlesDiv.appendChild(div);
+                });
+            } else {
+                mediumArticlesDiv.innerHTML = '<p style="color: var(--text-muted);">No recent articles found</p>';
+            }
+            
+            // Display Latest News
+            const latestNewsDiv = document.getElementById('latestNews');
+            latestNewsDiv.innerHTML = '';
+            if (data.news && data.news.length > 0) {
+                data.news.forEach(newsItem => {
+                    const div = document.createElement('div');
+                    div.className = 'news-item';
+                    div.innerHTML = `
+                        <h4>${newsItem.title}</h4>
+                        <p class="excerpt">${newsItem.excerpt}</p>
+                        <div class="meta">
+                            <span class="source">📰 ${newsItem.source}</span>
+                            <span>📅 ${newsItem.date}</span>
+                        </div>
+                    `;
+                    if (newsItem.url) {
+                        div.onclick = () => window.open(newsItem.url, '_blank');
+                    }
+                    latestNewsDiv.appendChild(div);
+                });
+            } else {
+                latestNewsDiv.innerHTML = '<p style="color: var(--text-muted);">No recent news found</p>';
+            }
+        }
+        
+        function showError(message) {
+            error.style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // Add smooth scrolling for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add intersection observer for animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all cards for scroll animations
+            document.querySelectorAll('.card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
+
