@@ -1,0 +1,3324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investor Research Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #2a2a2a;
+            --bg-hover: #333333;
+            --accent-orange: #ff8c00;
+            --accent-blue: #4a90e2;
+            --accent-green: #4ade80;
+            --text-primary: #ffffff;
+            --text-secondary: #c0c0c0;
+            --text-muted: #909090;
+            --border-color: #333333;
+            --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-heavy: 0 16px 64px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background gradient animation */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 140, 0, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(74, 144, 226, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(74, 222, 128, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+        
+        .header h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .header p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        /* Search Box Styles */
+        .search-box {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 40px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .search-box:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 16px;
+            align-items: stretch;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 18px 24px;
+            font-size: 16px;
+            font-family: inherit;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .search-input:focus {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .search-button {
+            padding: 18px 32px;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, #ff6b00 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .search-button:hover::before {
+            left: 100%;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 140, 0, 0.3);
+        }
+
+        .search-button:active {
+            transform: translateY(0);
+        }
+        
+        .search-button:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .search-button:disabled::before {
+            display: none;
+        }
+        
+        /* Investor Tabs */
+        .investor-tabs {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid var(--border-color);
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+        
+        .investor-tabs h3 {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .tab-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .tab-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+        }
+        
+        .tab-btn:hover::before {
+            left: 100%;
+        }
+        
+        .tab-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Results Container */
+        .results {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .results.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Card Styles */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-orange);
+        }
+        
+        .card h2 {
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        /* Profile Styles */
+        .profile {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 16px;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-orange);
+        }
+        
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover img {
+            transform: scale(1.1);
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-info h3 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .profile-info .title {
+            color: var(--accent-orange);
+            margin-bottom: 16px;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        .profile-info .bio {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .profile-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .profile-links a {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        .profile-links a:hover {
+            background: var(--accent-orange);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+        }
+
+        /* Portfolio Grid */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .portfolio-item {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-orange);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        background 0.3s ease,
+                        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-left-color 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            transform: translateY(0);
+        }
+
+        .portfolio-item:hover {
+            transform: translateY(-4px) !important;
+            background: var(--bg-hover);
+            box-shadow: 0 12px 30px rgba(255, 140, 0, 0.25);
+            border-left-color: var(--accent-blue);
+        }
+        
+        .portfolio-item h4 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .portfolio-item .meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .portfolio-item .meta span {
+            font-size: 12px;
+            padding: 4px 8px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .portfolio-item .description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .company-links {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .company-links a {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .company-links a:hover {
+            background: var(--accent-blue);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced Portfolio Visualization */
+        .portfolio-viz {
+            margin-top: 24px;
+        }
+
+        .portfolio-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--bg-secondary), rgba(255, 140, 0, 0.05));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .summary-detail {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 140, 0, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .tab-button:hover::before {
+            left: 100%;
+        }
+
+        .tab-button:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, var(--accent-orange), #ff6b00);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+        }
+
+        .tab-button.active::before {
+            display: none;
+        }
+
+        .tab-icon {
+            font-size: 16px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Enhanced Sector Bars */
+        .enhanced-sector-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .enhanced-sector-bar {
+            position: relative;
+        }
+
+        .sector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .sector-info {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .sector-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sector-percentage {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sector-companies {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .bar-track {
+            position: relative;
+            height: 40px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .bar-progress {
+            height: 100%;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+        }
+
+        .bar-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Shimmer effect for bars */
+        .bar-progress::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        @keyframes pieSliceIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Modern Pie Chart Styles */
+        .pie-chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+            padding: 40px;
+            overflow: visible;
+            min-height: 700px;
+        }
+
+        .pie-legend-horizontal {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        .pie-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(145deg, var(--bg-card), #202020);
+            border: 1px solid var(--border-color);
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.4),
+                -2px -2px 4px rgba(255, 255, 255, 0.02),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.03);
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .pie-legend-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            background: linear-gradient(145deg, transparent, rgba(255, 140, 0, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pie-legend-item:hover {
+            transform: translateY(-3px) translateZ(10px);
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.5),
+                -3px -3px 8px rgba(255, 255, 255, 0.03),
+                inset 2px 2px 4px rgba(255, 140, 0, 0.1);
+            border-color: var(--accent-orange);
+        }
+        
+        .pie-legend-item:hover::before {
+            opacity: 1;
+        }
+        
+        .pie-legend-item.active {
+            background: var(--bg-hover);
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.3);
+        }
+
+        .pie-legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            box-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.3),
+                -1px -1px 2px rgba(255, 255, 255, 0.05),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .pie-legend-item:hover .pie-legend-color {
+            transform: scale(1.15);
+            box-shadow: 
+                3px 3px 8px rgba(0, 0, 0, 0.4),
+                -2px -2px 4px rgba(255, 255, 255, 0.08),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.3),
+                0 0 15px rgba(255, 140, 0, 0.4);
+        }
+
+        .pie-legend-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .pie-legend-value {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .pie-chart-wrapper {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            padding: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.6));
+            transform: perspective(1200px) rotateX(20deg);
+            transition: transform 0.3s ease;
+            transform-style: preserve-3d;
+            overflow: visible;
+        }
+
+        .pie-chart-wrapper:hover {
+            transform: perspective(1200px) rotateX(15deg) scale(1.03);
+        }
+
+        .pie-chart-canvas {
+            /* Remove fixed dimensions to let Chart.js handle sizing */
+            max-width: 500px;
+            max-height: 500px;
+            filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Add pseudo-elements for 3D thickness effect */
+        .pie-chart-wrapper::before {
+            content: '';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(ellipse at center, rgba(255, 140, 0, 0.15) 0%, rgba(255, 140, 0, 0.05) 40%, transparent 70%);
+            filter: blur(25px);
+            z-index: -1;
+            animation: pulse3D 3s ease-in-out infinite;
+        }
+        
+        /* Add side thickness effect */
+        .pie-chart-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: -20px;
+            background: linear-gradient(to bottom, 
+                transparent 0%, 
+                transparent 70%, 
+                rgba(0, 0, 0, 0.1) 85%, 
+                rgba(0, 0, 0, 0.2) 100%);
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 50%;
+            transform: scaleY(1.1);
+        }
+        
+        @keyframes pulse3D {
+            0%, 100% {
+                opacity: 0.3;
+                transform: translateX(-50%) scale(0.95);
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateX(-50%) scale(1.05);
+            }
+        }
+        
+        /* Initial loading animation only */
+        .pie-chart-wrapper.loading {
+            animation: initialLoad3D 1.5s ease-out forwards;
+        }
+        
+        @keyframes initialLoad3D {
+            0% {
+                transform: perspective(1200px) rotateX(30deg) translateY(20px) scale(0.9);
+                opacity: 0;
+                filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3));
+            }
+            100% {
+                transform: perspective(1200px) rotateX(20deg) translateY(0) scale(1);
+                opacity: 1;
+                filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.6));
+            }
+        }
+
+        /* Sector Detail Modal */
+        .sector-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .sector-modal.active {
+            display: flex;
+        }
+
+        .sector-modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .sector-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sector-modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sector-modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+            transition: color 0.3s ease;
+        }
+
+        .sector-modal-close:hover {
+            color: var(--accent-orange);
+        }
+
+        .sector-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .sector-stat {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sector-stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .sector-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .sector-companies {
+            margin-top: 24px;
+        }
+
+        .sector-companies-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .sector-company-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sector-company-item {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .sector-company-item:hover {
+            transform: translateX(4px);
+            border-color: var(--accent-orange);
+        }
+
+        .sector-company-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .sector-company-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pie-center-circle {
+            fill: var(--bg-primary);
+            stroke: var(--border-color);
+            stroke-width: 2;
+        }
+
+        .pie-center-text {
+            fill: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+
+        .pie-center-label {
+            fill: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+
+        /* Pie Chart Legend */
+        .pie-legend {
+            flex: 0 1 350px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .legend-item:hover {
+            background: var(--bg-hover);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .legend-content {
+            flex: 1;
+        }
+
+        .legend-sector {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .legend-details {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .legend-percentage {
+            font-weight: 700;
+            color: var(--accent-orange);
+            font-size: 1.1rem;
+        }
+
+        /* Fixed Tooltip Styles from Manus AI */
+        .portfolio-tooltip {
+            position: fixed;
+            background: var(--bg-primary);
+            border: 1px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 12px 16px;
+            z-index: 99999;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            max-width: 320px;
+            min-width: 200px;
+            backdrop-filter: blur(8px);
+            transform: translateY(-8px);
+        }
+
+        .portfolio-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .tooltip-companies {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Theme Tags */
+        .theme-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .theme-tag {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, var(--accent-blue) 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .theme-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+        }
+        
+        /* Insight Sections */
+        .insight-section {
+            margin-bottom: 32px;
+        }
+        
+        .insight-section h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .insight-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        
+        .insight-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .insight-section li {
+            color: var(--text-secondary);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .insight-section li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--accent-orange);
+            font-weight: bold;
+        }
+
+        .insight-section li:hover {
+            color: var(--text-primary);
+            padding-left: 24px;
+        }
+        
+        .insight-section li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Quote Styles */
+        .quote {
+            font-style: italic;
+            color: var(--text-secondary);
+            padding: 20px 20px 20px 20px;
+            border-left: 4px solid var(--accent-orange);
+            margin: 16px 0;
+            background: var(--bg-secondary);
+            border-radius: 0 8px 8px 0;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease,
+                        box-shadow 0.3s ease,
+                        background 0.3s ease,
+                        border-left-width 0.3s ease;
+        }
+        
+        .quote:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-light);
+            background: var(--bg-hover);
+            border-left-width: 8px;
+            color: var(--accent-orange);
+        }
+
+        .quote::before {
+            content: '"';
+            font-size: 2rem;
+            color: var(--accent-orange);
+            font-family: serif;
+            opacity: 0.6;
+            margin-right: 12px;
+            vertical-align: text-top;
+            line-height: 0.8;
+        }
+        
+        .quote::after {
+            content: '"';
+            font-size: 2rem;
+            color: var(--accent-orange);
+            font-family: serif;
+            opacity: 0.6;
+            margin-left: 12px;
+            vertical-align: text-top;
+            line-height: 0.8;
+        }
+        
+        /* Article and News Styles */
+        .article, .news-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article::before, .news-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-blue);
+            transition: width 0.3s ease;
+        }
+
+        .news-item::before {
+            background: var(--accent-orange);
+        }
+
+        .article:hover::before, .news-item:hover::before {
+            width: 8px;
+        }
+
+        .article:hover, .news-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-light);
+            background: var(--bg-hover);
+        }
+        
+        .article h4, .news-item h4 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .article .excerpt, .news-item .excerpt {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .article .meta, .news-item .meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+        
+        .news-item .source {
+            font-weight: 600;
+            color: var(--accent-orange);
+        }
+        
+        /* Advanced Loading States */
+        .loading {
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .spinner-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .spinner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        
+        .spinner-track {
+            border: 3px solid var(--border-color);
+            opacity: 0.2;
+        }
+        
+        .spinner-fill {
+            border: 3px solid transparent;
+            border-top: 3px solid var(--accent-orange);
+            border-right: 3px solid var(--accent-blue);
+            animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+        
+        .spinner-pulse {
+            background: radial-gradient(circle, var(--accent-orange) 0%, transparent 70%);
+            animation: pulse 2s ease-out infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.2; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+        
+        /* Progress Steps */
+        .progress-steps {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            opacity: 0.3;
+            transform: translateX(-20px);
+            transition: all 0.5s ease;
+        }
+        
+        .progress-step.active {
+            opacity: 1;
+            transform: translateX(0);
+            background: linear-gradient(135deg, rgba(255, 140, 0, 0.1) 0%, rgba(74, 144, 226, 0.1) 100%);
+            border: 1px solid rgba(255, 140, 0, 0.3);
+        }
+        
+        .progress-step.completed {
+            opacity: 0.7;
+            transform: translateX(0);
+        }
+        
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active .step-icon {
+            background: var(--accent-orange);
+            border-color: var(--accent-orange);
+            animation: iconPulse 1s ease infinite;
+        }
+        
+        .progress-step.completed .step-icon {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        
+        .step-description {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .step-loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top: 2px solid var(--accent-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        
+        .progress-step.active .step-loader {
+            display: block;
+        }
+        
+        /* Loading Messages */
+        .loading-message {
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .loading-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .loading-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            animation: fadeInOut 3s ease-in-out infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            max-width: 400px;
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+            width: 0%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        /* Error States */
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-box {
+                padding: 24px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+            
+            .investor-tabs {
+                padding: 20px;
+            }
+            
+            .tab-buttons {
+                gap: 8px;
+            }
+            
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .profile {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-image {
+                align-self: center;
+            }
+
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sector-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .pie-chart-container {
+                flex-direction: column;
+                gap: 24px;
+                min-height: 500px;
+                padding: 20px;
+            }
+            
+            .pie-chart-wrapper {
+                max-width: 100%;
+                width: 400px;
+                height: 400px;
+                padding: 40px;
+                transform: perspective(1000px) rotateX(15deg);
+            }
+            
+            .pie-chart-canvas {
+                /* Let Chart.js handle sizing */
+                max-width: 380px;
+                max-height: 380px;
+            }
+            
+            .tab-button {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .sector-label {
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px 0;
+                margin-bottom: 40px;
+            }
+
+            .profile-links {
+                justify-content: center;
+            }
+
+            .theme-list {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Investor Research Assistant</h1>
+            <p>AI-powered insights on venture capitalists and their investments</p>
+        </div>
+        
+        <div class="search-box">
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="investorName" 
+                    placeholder="Enter investor name (e.g., Marc Andreessen)" 
+                    required
+                />
+                <button type="submit" class="search-button" id="searchButton">
+                    Research Investor
+                </button>
+            </form>
+        </div>
+        
+        <!-- Quick Access Tabs -->
+        <div class="investor-tabs">
+            <h3>Quick Access:</h3>
+            <div class="tab-buttons">
+                <button class="tab-btn" onclick="selectInvestor('Marc Andreessen')">Marc Andreessen</button>
+                <button class="tab-btn" onclick="selectInvestor('Mark Cuban')">Mark Cuban</button>
+                <button class="tab-btn" onclick="selectInvestor('Peter Thiel')">Peter Thiel</button>
+                <button class="tab-btn" onclick="selectInvestor('Paul Tudor Jones')">Paul Tudor Jones</button>
+                <button class="tab-btn" onclick="selectInvestor('Cathie Wood')">Cathie Wood</button>
+            </div>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="loading" id="loading">
+                <!-- Advanced Spinner -->
+                <div class="spinner-container">
+                    <div class="spinner spinner-pulse"></div>
+                    <div class="spinner spinner-track"></div>
+                    <div class="spinner spinner-fill"></div>
+                </div>
+                
+                <!-- Loading Message -->
+                <div class="loading-message">
+                    <h3 class="loading-title" id="loadingTitle">Researching Marc Andreessen</h3>
+                    <p class="loading-subtitle" id="loadingSubtitle">Scanning venture capital databases...</p>
+                </div>
+                
+                <!-- Progress Steps -->
+                <div class="progress-steps">
+                    <div class="progress-step" id="step1">
+                        <div class="step-icon">🔍</div>
+                        <div class="step-content">
+                            <div class="step-title">Finding Investor Profiles</div>
+                            <div class="step-description">Searching across Twitter, LinkedIn, Crunchbase...</div>
+                        </div>
+                        <div class="step-loader"></div>
+                    </div>
+                    
+                    <div class="progress-step" id="step2">
+                        <div class="step-icon">🏢</div>
+                        <div class="step-content">
+                            <div class="step-title">Discovering Portfolio</div>
+                            <div class="step-description">Analyzing investment history and companies...</div>
+                        </div>
+                        <div class="step-loader"></div>
+                    </div>
+                    
+                    <div class="progress-step" id="step3">
+                        <div class="step-icon">📊</div>
+                        <div class="step-content">
+                            <div class="step-title">Gathering Social Content</div>
+                            <div class="step-description">Collecting tweets, articles, and posts...</div>
+                        </div>
+                        <div class="step-loader"></div>
+                    </div>
+                    
+                    <div class="progress-step" id="step4">
+                        <div class="step-icon">📰</div>
+                        <div class="step-content">
+                            <div class="step-title">Fetching Latest News</div>
+                            <div class="step-description">Finding recent news and announcements...</div>
+                        </div>
+                        <div class="step-loader"></div>
+                    </div>
+                    
+                    <div class="progress-step" id="step5">
+                        <div class="step-icon">🤖</div>
+                        <div class="step-content">
+                            <div class="step-title">Generating Insights</div>
+                            <div class="step-description">AI analyzing patterns and themes...</div>
+                        </div>
+                        <div class="step-loader"></div>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+            
+            <div id="resultsContent" style="display: none;">
+                <!-- Profile Card -->
+                <div class="card" id="profileCard">
+                    <h2>Investor Profile</h2>
+                    <div class="profile">
+                        <div class="profile-image" id="profileImage">
+                            <span>No Image</span>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="investorNameDisplay"></h3>
+                            <p class="title" id="investorTitle"></p>
+                            <p class="bio" id="investorBio"></p>
+                            <div class="profile-links" id="profileLinks"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Portfolio Card -->
+                <div class="card" id="portfolioCard">
+                    <h2>Portfolio Companies</h2>
+                    <div class="portfolio-grid" id="portfolioGrid"></div>
+                </div>
+                
+                <!-- Enhanced Portfolio Distribution Visualization with Tabs -->
+                <div class="card" id="chartSection" style="display: none;">
+                    <h2>📊 Investment Portfolio Distribution</h2>
+                    <div class="portfolio-viz">
+                        <div class="portfolio-summary" id="portfolioSummary"></div>
+                        
+                        <!-- Tab Navigation -->
+                        <div class="tab-navigation">
+                            <button class="tab-button active" data-tab="bar-chart">
+                                <span class="tab-icon">📊</span>
+                                Bar Chart
+                            </button>
+                            <button class="tab-button" data-tab="pie-chart">
+                                <img src="/static/pie-chart.png" alt="Pie Chart" style="width: 18px; height: 18px; object-fit: contain;">
+                                Pie Chart
+                            </button>
+                        </div>
+                        
+                        <!-- Bar Chart Tab Content -->
+                        <div class="tab-content active" id="bar-chart">
+                            <div class="enhanced-sector-bars" id="enhancedSectorBars"></div>
+                        </div>
+                        
+                        <!-- Pie Chart Tab Content -->
+                        <div class="tab-content" id="pie-chart">
+                            <div class="pie-chart-container">
+                                <!-- Horizontal Legend -->
+                                <div class="pie-legend-horizontal" id="pieLegendHorizontal">
+                                    <!-- Legend items will be generated here -->
+                                </div>
+                                <!-- Chart Canvas -->
+                                <div class="pie-chart-wrapper">
+                                    <canvas id="pieChartCanvas" class="pie-chart-canvas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="portfolio-tooltip" id="portfolioTooltip"></div>
+                </div>
+                
+                <!-- Insights Card -->
+                <div class="card" id="insightsCard">
+                    <h2>Investment Insights</h2>
+                    
+                    <div class="insight-section">
+                        <h3>Investment Themes</h3>
+                        <div class="theme-list" id="themesList"></div>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Investment Thesis</h3>
+                        <p id="investmentThesis"></p>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Recent Articles</h3>
+                        <div id="mediumArticles"></div>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Notable Quotes</h3>
+                        <div id="notableQuotes"></div>
+                    </div>
+                    
+                    <div class="insight-section">
+                        <h3>Latest News</h3>
+                        <div id="latestNews"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="error" id="error" style="display: none;">
+                <p id="errorMessage"></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sector Detail Modal -->
+    <div class="sector-modal" id="sectorModal">
+        <div class="sector-modal-content">
+            <div class="sector-modal-header">
+                <h3 class="sector-modal-title" id="sectorModalTitle">Sector Details</h3>
+                <button class="sector-modal-close" id="sectorModalClose">&times;</button>
+            </div>
+            <div class="sector-stats">
+                <div class="sector-stat">
+                    <div class="sector-stat-label">Total Investment</div>
+                    <div class="sector-stat-value" id="sectorTotalInvestment">$0M</div>
+                </div>
+                <div class="sector-stat">
+                    <div class="sector-stat-label">Portfolio Share</div>
+                    <div class="sector-stat-value" id="sectorPortfolioShare">0%</div>
+                </div>
+                <div class="sector-stat">
+                    <div class="sector-stat-label">Companies</div>
+                    <div class="sector-stat-value" id="sectorCompanyCount">0</div>
+                </div>
+                <div class="sector-stat">
+                    <div class="sector-stat-label">Average Investment</div>
+                    <div class="sector-stat-value" id="sectorAvgInvestment">$0M</div>
+                </div>
+            </div>
+            <div class="sector-companies">
+                <h4 class="sector-companies-title">Portfolio Companies</h4>
+                <div class="sector-company-list" id="sectorCompanyList">
+                    <!-- Company items will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchButton = document.getElementById('searchButton');
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const resultsContent = document.getElementById('resultsContent');
+        const error = document.getElementById('error');
+        
+        // Loading animation system
+        let currentStep = 0;
+        let loadingInterval;
+        
+        const loadingMessages = [
+            { title: 'Initializing Search', subtitle: 'Loading investor research system...' },
+            { title: 'Scanning Databases', subtitle: 'Retrieving investor profile data...' },
+            { title: 'Analyzing Profiles', subtitle: 'Processing social media accounts...' },
+            { title: 'Processing Companies', subtitle: 'Loading portfolio investments...' },
+            { title: 'Collecting Content', subtitle: 'Aggregating tweets, news, and articles...' },
+            { title: 'Generating Report', subtitle: 'Compiling comprehensive analysis...' }
+        ];
+        
+        function startLoadingAnimation(investorName) {
+            // Reset all steps
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+            });
+            
+            // Set initial loading title
+            document.getElementById('loadingTitle').textContent = `Researching ${investorName}`;
+            document.getElementById('loadingSubtitle').textContent = loadingMessages[0].subtitle;
+            document.getElementById('progressBar').style.width = '0%';
+            
+            currentStep = 0;
+            
+            // Start the animation - faster initialization
+            setTimeout(() => {
+                advanceLoadingStep();
+            }, 650);  // Match actual initialization time
+            
+            // Set up automatic progression with realistic timing
+            loadingInterval = setInterval(() => {
+                if (currentStep < 5) {
+                    advanceLoadingStep();
+                }
+            }, 6500);  // Increased by 6 seconds (6000ms) from 500ms
+        }
+        
+        function advanceLoadingStep() {
+            if (currentStep < 5) {
+                // Mark current step as active
+                const currentStepEl = document.getElementById(`step${currentStep + 1}`);
+                currentStepEl.classList.add('active');
+                
+                // Mark previous steps as completed
+                if (currentStep > 0) {
+                    const prevStepEl = document.getElementById(`step${currentStep}`);
+                    prevStepEl.classList.remove('active');
+                    prevStepEl.classList.add('completed');
+                    prevStepEl.querySelector('.step-icon').textContent = '✓';
+                }
+                
+                // Update progress bar
+                const progress = ((currentStep + 1) / 5) * 100;
+                document.getElementById('progressBar').style.width = `${progress}%`;
+                
+                // Update loading message
+                if (currentStep < loadingMessages.length - 1) {
+                    const msg = loadingMessages[currentStep + 1];
+                    document.getElementById('loadingSubtitle').textContent = msg.subtitle;
+                }
+                
+                currentStep++;
+            }
+        }
+        
+        function completeLoadingAnimation() {
+            clearInterval(loadingInterval);
+            
+            // Complete all steps
+            for (let i = 1; i <= 5; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                stepEl.classList.remove('active');
+                stepEl.classList.add('completed');
+                stepEl.querySelector('.step-icon').textContent = '✓';
+            }
+            
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('loadingSubtitle').textContent = 'Research complete! Preparing results...';
+            
+            // Short delay before showing results
+            setTimeout(() => {
+                loading.style.display = 'none';
+                resultsContent.style.display = 'block';
+            }, 500);
+        }
+        
+        // Tab switching functionality
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.dataset.tab;
+
+                    // Update active states
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+
+                    // Trigger animations for the active tab
+                    if (targetTab === 'pie-chart') {
+                        setTimeout(() => {
+                            animatePieChart();
+                        }, 100);
+                    }
+                });
+            });
+        }
+        
+        // Initialize tabs on page load
+        initializeTabs();
+        
+        // Close modal functionality
+        document.getElementById('sectorModalClose').addEventListener('click', () => {
+            document.getElementById('sectorModal').classList.remove('active');
+        });
+        
+        // Close modal when clicking outside
+        document.getElementById('sectorModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('sectorModal')) {
+                document.getElementById('sectorModal').classList.remove('active');
+            }
+        });
+        
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const investorName = document.getElementById('investorName').value;
+            
+            // Show loading state with animations
+            results.classList.add('active');
+            loading.style.display = 'flex';
+            resultsContent.style.display = 'none';
+            error.style.display = 'none';
+            searchButton.disabled = true;
+            searchButton.textContent = 'Researching...';
+            
+            // Scroll to loading animation smoothly
+            setTimeout(() => {
+                loading.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center'
+                });
+            }, 100);
+            
+            // Start loading animation
+            startLoadingAnimation(investorName);
+            
+            try {
+                const formData = new FormData();
+                formData.append('investor_name', investorName);
+                
+                const response = await fetch('/research', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    completeLoadingAnimation();
+                    setTimeout(() => {
+                        displayResults(data);
+                    }, 300);  // Reduced from 600ms to match faster loading
+                } else {
+                    clearInterval(loadingInterval);
+                    loading.style.display = 'none';
+                    showError(data.error || 'An error occurred while researching the investor');
+                }
+            } catch (err) {
+                clearInterval(loadingInterval);
+                loading.style.display = 'none';
+                showError('Failed to connect to the server. Please try again.');
+            } finally {
+                searchButton.disabled = false;
+                searchButton.textContent = 'Research Investor';
+            }
+        });
+        
+        // Enhanced portfolio visualization with percentage-based insights
+        function createPortfolioVisualization(portfolio) {
+            try {
+                console.log('Creating enhanced visualization with portfolio:', portfolio);
+                
+                // Show chart section
+                document.getElementById('chartSection').style.display = 'block';
+                
+                // Process sector data with investment values
+                const { sectorData, totalValue } = processSectorData(portfolio);
+                
+                // Create summary cards
+                createPortfolioSummary(portfolio, sectorData, totalValue);
+                
+                // Create enhanced sector bars
+                createEnhancedSectorBars(sectorData, totalValue, portfolio);
+                
+                // Create pie chart
+                createPieChart(sectorData, totalValue);
+                
+                console.log('Enhanced visualization created successfully');
+                
+            } catch (error) {
+                console.error('Error creating visualization:', error);
+                document.getElementById('chartSection').style.display = 'none';
+            }
+        }
+
+        function processSectorData(portfolio) {
+            const sectorData = {};
+            let totalValue = 0;
+            
+            portfolio.forEach(company => {
+                const sector = normalizeSectorName(company.sector || 'Other');
+                const value = company.investment_value || estimateCompanyValue(company);
+                
+                if (!sectorData[sector]) {
+                    sectorData[sector] = {
+                        companies: [],
+                        value: 0,
+                        count: 0
+                    };
+                }
+                
+                sectorData[sector].companies.push(company.name);
+                sectorData[sector].value += value;
+                sectorData[sector].count++;
+                totalValue += value;
+            });
+            
+            return { sectorData, totalValue };
+        }
+
+        function normalizeSectorName(sector) {
+            const normalizations = {
+                'Artificial Intelligence': 'AI',
+                'Software': 'Software',
+                'Cryptocurrency': 'Crypto',
+                'Virtual Reality': 'VR/AR',
+                'E-commerce': 'E-commerce',
+                'Social Media': 'Social',
+                'Gaming': 'Gaming',
+                'Media': 'Media',
+                'Transportation': 'Transport',
+                'IoT': 'IoT',
+                'Data Infrastructure': 'Data',
+                'Fintech': 'Fintech',
+                'Financial Technology': 'Fintech'
+            };
+            return normalizations[sector] || sector;
+        }
+
+        function estimateCompanyValue(company) {
+            // Estimate based on stage if no investment_value
+            const stageValues = {
+                'Seed': 2000000,
+                'Pre-Seed': 500000,
+                'Series A': 15000000,
+                'Series B': 35000000,
+                'Series C': 60000000,
+                'Series D': 100000000,
+                'Series E': 150000000,
+                'Series F': 200000000,
+                'Series G': 300000000,
+                'Series H': 400000000,
+                'Investment': 50000000,
+                'Co-founder': 100000000
+            };
+            return stageValues[company.stage] || 25000000; // Default $25M
+        }
+
+        function createPortfolioSummary(portfolio, sectorData, totalValue) {
+            const summaryDiv = document.getElementById('portfolioSummary');
+            const topSector = Object.entries(sectorData)
+                .sort(([,a], [,b]) => b.value - a.value)[0];
+            
+            summaryDiv.innerHTML = `
+                <div class="summary-card">
+                    <div class="summary-label">Companies</div>
+                    <div class="summary-value">${portfolio.length}</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Portfolio Value</div>
+                    <div class="summary-value">$${(totalValue / 1000000).toFixed(0)}M</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Top Sector</div>
+                    <div class="summary-value">${topSector[0]}</div>
+                    <div class="summary-detail">${((topSector[1].value / totalValue) * 100).toFixed(0)}%</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Sectors</div>
+                    <div class="summary-value">${Object.keys(sectorData).length}</div>
+                </div>
+            `;
+        }
+
+        function createEnhancedSectorBars(sectorData, totalValue, portfolio) {
+            const barsDiv = document.getElementById('enhancedSectorBars');
+            barsDiv.innerHTML = '';
+            
+            // Sort by value
+            const sortedSectors = Object.entries(sectorData)
+                .sort(([,a], [,b]) => b.value - a.value);
+            
+            // Color gradients for different sectors
+            const gradients = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+                'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                'linear-gradient(135deg, #ff9a56 0%, #ff5858 100%)'
+            ];
+            
+            sortedSectors.forEach(([sector, data], index) => {
+                const percentage = (data.value / totalValue) * 100;
+                const gradient = gradients[index % gradients.length];
+                
+                const barDiv = document.createElement('div');
+                barDiv.className = 'enhanced-sector-bar';
+                barDiv.style.animation = `fadeIn 0.6s ease-out ${index * 0.1}s both`;
+                
+                barDiv.innerHTML = `
+                    <div class="sector-header">
+                        <div class="sector-info">
+                            <span class="sector-name">${sector}</span>
+                            <span class="sector-percentage">${percentage.toFixed(1)}%</span>
+                        </div>
+                        <span class="sector-companies">${data.count} ${data.count === 1 ? 'company' : 'companies'}</span>
+                    </div>
+                    <div class="bar-track" data-sector="${sector}">
+                        <div class="bar-progress" style="width: 0%; background: ${gradient}" data-width="${percentage}%">
+                            <span class="bar-value">$${(data.value / 1000000).toFixed(1)}M</span>
+                        </div>
+                    </div>
+                `;
+                
+                barsDiv.appendChild(barDiv);
+                
+                // Get tooltip element
+                const tooltip = document.getElementById('portfolioTooltip');
+                
+                // Add FIXED tooltip event listeners to entire bar
+                barDiv.addEventListener('mouseenter', (e) => {
+                    showTooltipAtMouse(e, sector, data, tooltip, totalValue);
+                });
+                
+                barDiv.addEventListener('mousemove', (e) => {
+                    updateTooltipPosition(e, tooltip);
+                });
+                
+                barDiv.addEventListener('mouseleave', () => {
+                    hideTooltip(tooltip);
+                });
+            });
+            
+            // Animate bars after creation
+            setTimeout(() => {
+                const bars = document.querySelectorAll('.bar-progress');
+                bars.forEach((bar, index) => {
+                    setTimeout(() => {
+                        bar.style.width = bar.dataset.width;
+                    }, index * 100);
+                });
+            }, 300);
+        }
+
+        // Fixed tooltip functions from Manus AI
+        function showTooltipAtMouse(event, sector, data, tooltip, totalValue) {
+            const companiesList = data.companies.slice(0, 5).join(', ');
+            const moreText = data.companies.length > 5 ? ` +${data.companies.length - 5} more` : '';
+            
+            // Calculate percentage using passed totalValue
+            const percentage = ((data.value / totalValue) * 100).toFixed(1);
+            
+            tooltip.innerHTML = `
+                <div class="tooltip-title">${sector} Investments</div>
+                <div class="tooltip-companies">
+                    <strong>${percentage}% of portfolio</strong><br>
+                    <strong>$${(data.value / 1000000).toFixed(1)}M invested</strong><br>
+                    <strong>${data.companies.length} ${data.companies.length === 1 ? 'company' : 'companies'}</strong><br>
+                    <br>
+                    ${companiesList}${moreText}
+                </div>
+            `;
+            
+            // Ensure tooltip is at body level for proper positioning
+            if (tooltip.parentNode !== document.body) {
+                document.body.appendChild(tooltip);
+            }
+            
+            // Show tooltip with proper positioning
+            tooltip.classList.add('visible');
+            updateTooltipPosition(event, tooltip);
+        }
+
+        function updateTooltipPosition(event, tooltip) {
+            // Simple mouse-follow positioning that works
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            
+            // Offset from mouse for visibility
+            const offsetX = 10;
+            const offsetY = 10;
+            
+            // Get tooltip size for boundary checks
+            const rect = tooltip.getBoundingClientRect();
+            
+            // Calculate position
+            let left = mouseX + offsetX;
+            let top = mouseY + offsetY;
+            
+            // Simple boundary checks
+            if (left + rect.width > window.innerWidth - 10) {
+                left = mouseX - rect.width - offsetX;
+            }
+            
+            if (top + rect.height > window.innerHeight - 10) {
+                top = mouseY - rect.height - offsetY;
+            }
+            
+            // Ensure minimum distance from edges
+            left = Math.max(10, left);
+            top = Math.max(10, top);
+            
+            // Apply position directly
+            tooltip.style.position = 'fixed';
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.style.zIndex = '999999';
+        }
+
+        function hideTooltip(tooltip) {
+            tooltip.classList.remove('visible');
+        }
+        
+        // Store chart instance and hover state globally
+        let pieChartInstance = null;
+        let currentSectorData = {};
+        let currentHoveredIndex = -1;
+        let glossyAnimationFrame = null;
+        
+        // Animation control functions (glossy animation removed)
+        
+        function highlightChartSlice(index) {
+            console.log('Highlighting slice:', index);
+            if (pieChartInstance && index !== currentHoveredIndex) {
+                currentHoveredIndex = index;
+                
+                // Set active elements
+                pieChartInstance.setActiveElements([{
+                    datasetIndex: 0,
+                    index: index
+                }]);
+                
+                // Also set tooltip
+                pieChartInstance.tooltip.setActiveElements([{
+                    datasetIndex: 0,
+                    index: index
+                }]);
+                
+                // Update chart with smooth transition
+                pieChartInstance.update('active');
+            }
+        }
+        
+        function unhighlightChartSlice() {
+            console.log('Unhighlighting slice');
+            if (pieChartInstance && currentHoveredIndex !== -1) {
+                currentHoveredIndex = -1;
+                
+                // Clear active elements
+                pieChartInstance.setActiveElements([]);
+                pieChartInstance.tooltip.setActiveElements([]);
+                
+                // Update chart
+                pieChartInstance.update('active');
+            }
+        }
+        
+        function updateLegendHighlight(index) {
+            document.querySelectorAll('.pie-legend-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+        }
+        
+        function clearLegendHighlight() {
+            document.querySelectorAll('.pie-legend-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+        
+        // Create modern pie chart with Chart.js
+        function createPieChart(sectorData, totalValue) {
+            const canvas = document.getElementById('pieChartCanvas');
+            const legend = document.getElementById('pieLegendHorizontal');
+            currentSectorData = sectorData;
+            
+            // Destroy existing chart if it exists
+            if (pieChartInstance) {
+                pieChartInstance.destroy();
+            }
+            
+            // Clear legend
+            legend.innerHTML = '';
+            
+            // Sort sectors by value
+            const sortedSectors = Object.entries(sectorData)
+                .sort(([,a], [,b]) => b.value - a.value);
+            
+            // Prepare data for Chart.js
+            const labels = [];
+            const data = [];
+            const backgroundColors = [];
+            
+            // Diverse warm color palette with harmonious arrangement
+            const gradients = [
+                ['#FF6B6B', '#E84855'],  // Warm red to deep red
+                ['#FF9A5C', '#FF6B35'],  // Orange-red to vibrant orange
+                ['#FFD93D', '#F6B93B'],  // Golden yellow to amber
+                ['#6BCF7F', '#4CAF50'],  // Fresh green to emerald
+                ['#4ECDC4', '#3CBBB1'],  // Teal to turquoise  
+                ['#5B9FED', '#4A7FDB'],  // Sky blue to royal blue
+                ['#9B59B6', '#8E44AD'],  // Purple to deep violet
+                ['#F06292', '#E91E63'],  // Pink to magenta
+                ['#90A4AE', '#607D8B'],  // Blue-grey to slate
+                ['#8BC34A', '#689F38'],  // Lime green to olive
+                ['#FF7043', '#F4511E'],  // Deep orange to burnt orange
+                ['#AB47BC', '#9C27B0']   // Lavender to purple
+            ];
+            
+            // Get context for gradients
+            const ctx = canvas.getContext('2d');
+            const chartGradients = [];
+            
+            // Process data and create horizontal legend
+            sortedSectors.forEach(([sector, sectorInfo], index) => {
+                const percentage = (sectorInfo.value / totalValue) * 100;
+                const colors = gradients[index % gradients.length];
+                
+                // Add data for chart
+                labels.push(sector);
+                data.push(sectorInfo.value);
+                
+                // Create gradient for this sector with 3D depth effect
+                const gradient = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, 0,
+                    canvas.width / 2, canvas.height / 2, canvas.width / 2
+                );
+                gradient.addColorStop(0, colors[0]);
+                gradient.addColorStop(0.7, colors[1]);
+                gradient.addColorStop(1, `${colors[1]}CC`); // Add transparency at edge for depth
+                chartGradients.push(gradient);
+                backgroundColors.push(colors[0]); // Fallback color
+                
+                // Create horizontal legend item
+                const legendItem = document.createElement('div');
+                legendItem.className = 'pie-legend-item';
+                legendItem.dataset.sector = sector;
+                legendItem.innerHTML = `
+                    <div class="pie-legend-color" style="background: linear-gradient(135deg, ${colors[0]}, ${colors[1]})"></div>
+                    <div class="pie-legend-text">
+                        <span>${sector}</span>
+                        <span class="pie-legend-value">${percentage.toFixed(1)}%</span>
+                    </div>
+                `;
+                
+                // Add hover events for legend item with enhanced synchronization
+                legendItem.addEventListener('mouseenter', () => {
+                    highlightChartSlice(index);
+                    legendItem.classList.add('active');
+                });
+                
+                legendItem.addEventListener('mouseleave', () => {
+                    unhighlightChartSlice();
+                    legendItem.classList.remove('active');
+                });
+                
+                // Add click event for legend item to show modal
+                legendItem.addEventListener('click', () => {
+                    showSectorModal(sector, sectorInfo, percentage, totalValue);
+                });
+                
+                legend.appendChild(legendItem);
+            });
+            
+            // Create custom plugins for enhanced 3D and shine effects
+            const shadow3DPlugin = {
+                id: 'shadow3D',
+                beforeDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    
+                    // Draw multiple shadow layers for depth
+                    const centerX = chart.width / 2;
+                    const centerY = chart.height / 2;
+                    
+                    // Bottom shadow layer (darkest)
+                    ctx.save();
+                    ctx.translate(centerX, centerY + 30);
+                    ctx.scale(1.1, 0.35);
+                    const shadowGradient1 = ctx.createRadialGradient(0, 0, 0, 0, 0, 200);
+                    shadowGradient1.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+                    shadowGradient1.addColorStop(0.5, 'rgba(0, 0, 0, 0.2)');
+                    shadowGradient1.addColorStop(1, 'transparent');
+                    ctx.fillStyle = shadowGradient1;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 200, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    // Middle shadow layer
+                    ctx.save();
+                    ctx.translate(centerX, centerY + 20);
+                    ctx.scale(1, 0.3);
+                    const shadowGradient2 = ctx.createRadialGradient(0, 0, 0, 0, 0, 180);
+                    shadowGradient2.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
+                    shadowGradient2.addColorStop(0.6, 'rgba(0, 0, 0, 0.1)');
+                    shadowGradient2.addColorStop(1, 'transparent');
+                    ctx.fillStyle = shadowGradient2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 180, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                    
+                    ctx.restore();
+                }
+            };
+            
+            // Enhanced Glossy Sweep Plugin with Smooth Animations
+            const glossySweepPlugin = {
+                id: 'glossySweep',
+                afterDatasetDraw: (chart, args) => {
+                    const ctx = chart.ctx;
+                    const meta = args.meta;
+                    
+                    // Get active/hovered elements
+                    const activeElements = chart.getActiveElements();
+                    if (activeElements.length === 0) return;
+                    
+                    activeElements.forEach(active => {
+                        const element = meta.data[active.index];
+                        if (!element) return;
+                        
+                        ctx.save();
+                        
+                        // Get arc properties
+                        const { x, y, startAngle, endAngle, outerRadius, innerRadius } = 
+                            element.getProps(['x', 'y', 'startAngle', 'endAngle', 'outerRadius', 'innerRadius']);
+                        
+                        // Create clipping path for the slice
+                        ctx.beginPath();
+                        ctx.arc(x, y, outerRadius, startAngle, endAngle);
+                        ctx.arc(x, y, innerRadius, endAngle, startAngle, true);
+                        ctx.closePath();
+                        ctx.clip();
+                        
+                        // Calculate sweep position based on time for animation
+                        const time = Date.now() / 1000;
+                        const sweepSpeed = 0.3; // Slower, more subtle sweep
+                        const sweepPosition = (time * sweepSpeed) % 1;
+                        
+                        // Create animated glossy gradient
+                        const sweepAngle = startAngle + (endAngle - startAngle) * sweepPosition;
+                        const sweepX = x + Math.cos(sweepAngle) * (outerRadius * 0.7);
+                        const sweepY = y + Math.sin(sweepAngle) * (outerRadius * 0.7);
+                        
+                        // Enhanced radial gradient for glossy effect
+                        const glossGradient = ctx.createRadialGradient(
+                            sweepX, sweepY, 0,
+                            sweepX, sweepY, outerRadius * 1.2
+                        );
+                        
+                        // Subtle glossy colors - much less white
+                        glossGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');  // Was 0.8
+                        glossGradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.15)');  // Was 0.6
+                        glossGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.08)');  // Was 0.3
+                        glossGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.03)');  // Was 0.1
+                        glossGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        
+                        // Draw the sweep
+                        ctx.fillStyle = glossGradient;
+                        ctx.fillRect(x - outerRadius, y - outerRadius, outerRadius * 2, outerRadius * 2);
+                        
+                        // Add subtle secondary shine for enhanced glass effect
+                        const shineGradient = ctx.createLinearGradient(
+                            x - outerRadius * 0.5, y - outerRadius * 0.5,
+                            x + outerRadius * 0.5, y + outerRadius * 0.5
+                        );
+                        shineGradient.addColorStop(0, 'rgba(255, 255, 255, 0.08)');  // Was 0.2
+                        shineGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.02)');  // Was 0.05
+                        shineGradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');  // Was 0.15
+                        
+                        ctx.fillStyle = shineGradient;
+                        ctx.fillRect(x - outerRadius, y - outerRadius, outerRadius * 2, outerRadius * 2);
+                        
+                        ctx.restore();
+                    });
+                }
+            };
+            
+            // Original shine plugin (now replaced with glossySweep)
+            const shinePlugin = {
+                id: 'shine',
+                afterDatasetDraw: (chart, args) => {
+                    const ctx = chart.ctx;
+                    const meta = args.meta;
+                    
+                    // Get hover elements from tooltip
+                    const tooltipModel = chart.tooltip;
+                    const activeElements = tooltipModel?.getActiveElements() || [];
+                    
+                    // If no active elements, return
+                    if (activeElements.length === 0) return;
+                    
+                    activeElements.forEach(active => {
+                        const element = meta.data[active.index];
+                        if (!element) return;
+                        
+                        ctx.save();
+                        
+                        // Get the arc properties
+                        const { x, y, startAngle, endAngle, outerRadius, innerRadius } = element.getProps(['x', 'y', 'startAngle', 'endAngle', 'outerRadius', 'innerRadius']);
+                        
+                        // Calculate middle angle for positioning
+                        const middleAngle = (startAngle + endAngle) / 2;
+                        const offset = 20; // Pop out distance
+                        const popX = x + Math.cos(middleAngle) * offset;
+                        const popY = y + Math.sin(middleAngle) * offset;
+                        
+                        // Remove glow effect - just subtle shadow
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                        ctx.shadowOffsetX = 2;
+                        ctx.shadowOffsetY = 2;
+                        
+                        // Draw the popped out slice with glow
+                        ctx.beginPath();
+                        ctx.arc(popX, popY, outerRadius + 8, startAngle, endAngle);
+                        ctx.arc(popX, popY, innerRadius, endAngle, startAngle, true);
+                        ctx.closePath();
+                        
+                        // Apply glossy gradient
+                        const glossGradient = ctx.createRadialGradient(
+                            popX - outerRadius/2, popY - outerRadius/2, 0,
+                            popX, popY, outerRadius
+                        );
+                        glossGradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+                        glossGradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.4)');
+                        glossGradient.addColorStop(0.7, 'rgba(255, 255, 255, 0.15)');
+                        glossGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = glossGradient;
+                        ctx.fill();
+                        
+                        // Add sleek sweep effect
+                        const sweepGradient = ctx.createLinearGradient(
+                            popX - outerRadius, popY - outerRadius,
+                            popX + outerRadius, popY + outerRadius
+                        );
+                        sweepGradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        sweepGradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.15)');
+                        sweepGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)');
+                        sweepGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.15)');
+                        sweepGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        
+                        ctx.beginPath();
+                        ctx.arc(popX, popY, outerRadius + 8, startAngle, endAngle);
+                        ctx.arc(popX, popY, innerRadius, endAngle, startAngle, true);
+                        ctx.closePath();
+                        ctx.fillStyle = sweepGradient;
+                        ctx.fill();
+                        
+                        // Add bright edge highlight
+                        ctx.strokeStyle = 'rgba(255, 140, 0, 1)';
+                        ctx.lineWidth = 4;
+                        ctx.stroke();
+                        
+                        ctx.restore();
+                    });
+                }
+            };
+            
+            // Center text plugin for total value
+            const centerTextPlugin = {
+                id: 'centerText',
+                afterDatasetsDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    const centerX = chart.getDatasetMeta(0).data[0].x;
+                    const centerY = chart.getDatasetMeta(0).data[0].y;
+                    
+                    ctx.save();
+                    
+                    // Total value text
+                    ctx.font = 'bold 28px Inter';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`$${(totalValue / 1000000).toFixed(0)}M`, centerX, centerY - 10);
+                    
+                    // Label text
+                    ctx.font = '14px Inter';
+                    ctx.fillStyle = '#909090';
+                    ctx.fillText('Total Portfolio', centerX, centerY + 15);
+                    
+                    ctx.restore();
+                }
+            };
+            
+            // Add loading class for initial animation
+            const wrapper = document.querySelector('.pie-chart-wrapper');
+            if (wrapper) {
+                wrapper.classList.add('loading');
+            }
+            
+            // Create the Chart.js donut chart with NO animations and NO hover offset
+            const chartConfig = {
+                type: 'doughnut',
+                plugins: [shadow3DPlugin, centerTextPlugin],  // Removed glossySweepPlugin
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: chartGradients.length > 0 ? chartGradients : backgroundColors,
+                        borderColor: 'transparent',  // Make border transparent to avoid gaps
+                        borderWidth: 0,  // Remove border width completely
+                        hoverOffset: 0,  // REMOVED pop-out effect to fix alignment
+                        hoverBorderWidth: 0,  // Keep borders clean
+                        hoverBorderColor: 'transparent',
+                        borderAlign: 'inner',  // Back to inner
+                        weight: 1,
+                        spacing: 2,  // Small gaps between slices
+                        shadowOffsetX: 8,
+                        shadowOffsetY: 8,
+                        shadowBlur: 20,
+                        shadowColor: 'rgba(0, 0, 0, 0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,  // Changed to true to maintain circle shape
+                    aspectRatio: 1,  // Force square aspect ratio for perfect circle
+                    cutout: '55%',
+                    animation: false,  // Completely disable animations
+                    events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'],
+                    layout: {
+                        padding: {
+                            left: 40,
+                            right: 40,
+                            top: 40,
+                            bottom: 40
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',  // Use nearest for doughnut charts
+                        intersect: false,  // False works better for detecting hover on slices
+                        axis: 'r'  // Radial axis for pie/doughnut charts
+                    },
+                    onHover: (event, activeElements, chart) => {
+                        console.log('onHover fired, activeElements:', activeElements.length);
+                        // Update cursor
+                        const canvas = chart.canvas;
+                        if (canvas) {
+                            canvas.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+                        }
+                        
+                        // Handle hover state changes
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            console.log('Hovering over slice index:', index);
+                            if (index !== currentHoveredIndex) {
+                                currentHoveredIndex = index;
+                                
+                                // Update legend highlighting
+                                updateLegendHighlight(index);
+                            }
+                        } else {
+                            if (currentHoveredIndex !== -1) {
+                                console.log('Hover ended');
+                                currentHoveredIndex = -1;
+                                
+                                // Clear legend highlights
+                                clearLegendHighlight();
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // We're using custom legend
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(26, 26, 26, 0.98)',
+                            titleColor: '#ffffff',
+                            titleFont: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            bodyColor: '#ffffff',
+                            bodyFont: {
+                                size: 16
+                            },
+                            footerColor: '#c0c0c0',
+                            footerFont: {
+                                size: 14
+                            },
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            padding: 20,
+                            displayColors: true,
+                            boxPadding: 8,
+                            caretSize: 8,
+                            bodySpacing: 6,
+                            titleMarginBottom: 12,
+                            footerMarginTop: 8,
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return tooltipItems[0].label + ' Sector';
+                                },
+                                label: function(context) {
+                                    return null; // We'll use afterLabel for better formatting
+                                },
+                                afterLabel: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const percentage = ((value / totalValue) * 100).toFixed(1);
+                                    const sectorInfo = sectorData[label];
+                                    
+                                    const lines = [
+                                        `💰 Investment: $${(value / 1000000).toFixed(1)}M`,
+                                        `📊 Share: ${percentage}%`,
+                                        `🏢 ${sectorInfo.count} ${sectorInfo.count === 1 ? 'Company' : 'Companies'}:`,
+                                        ''
+                                    ];
+                                    
+                                    // Add company names (show first 4 companies)
+                                    const companiesToShow = sectorInfo.companies.slice(0, 4);
+                                    companiesToShow.forEach(company => {
+                                        lines.push(`   • ${company}`);
+                                    });
+                                    
+                                    // Add "and X more" if there are more companies
+                                    if (sectorInfo.companies.length > 4) {
+                                        lines.push(`   ... and ${sectorInfo.companies.length - 4} more`);
+                                    }
+                                    
+                                    return lines;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: false,
+                        animateScale: false,
+                        duration: 0
+                    },
+                    transitions: {
+                        active: {
+                            animation: {
+                                duration: 300,  // Smooth 300ms transition
+                                easing: 'easeOutCubic'
+                            }
+                        },
+                        hover: {
+                            animation: {
+                                duration: 300,
+                                easing: 'easeOutCubic'
+                            }
+                        },
+                        reset: {
+                            animation: {
+                                duration: 200,
+                                easing: 'easeInCubic'
+                            }
+                        }
+                    },
+                    onClick: function(event, elements) {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const sector = labels[index];
+                            const sectorInfo = sectorData[sector];
+                            const percentage = (sectorInfo.value / totalValue) * 100;
+                            showSectorModal(sector, sectorInfo, percentage, totalValue);
+                        }
+                    }
+                }
+            };
+            
+            // Create chart instance
+            pieChartInstance = new Chart(ctx, chartConfig);
+            
+            // Simple force update to ensure proper rendering
+            setTimeout(() => {
+                if (pieChartInstance) {
+                    pieChartInstance.update();
+                    pieChartInstance.render();
+                }
+            }, 50);
+            
+            // Remove loading class after animation
+            setTimeout(() => {
+                const wrapper = document.querySelector('.pie-chart-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('loading');
+                }
+            }, 50);
+        }
+        
+        // Show sector detail modal
+        function showSectorModal(sector, sectorInfo, percentage, totalValue) {
+            const modal = document.getElementById('sectorModal');
+            const modalTitle = document.getElementById('sectorModalTitle');
+            const totalInvestment = document.getElementById('sectorTotalInvestment');
+            const portfolioShare = document.getElementById('sectorPortfolioShare');
+            const companyCount = document.getElementById('sectorCompanyCount');
+            const avgInvestment = document.getElementById('sectorAvgInvestment');
+            const companyList = document.getElementById('sectorCompanyList');
+            
+            // Update modal content
+            modalTitle.textContent = `${sector} Sector`;
+            totalInvestment.textContent = `$${(sectorInfo.value / 1000000).toFixed(1)}M`;
+            portfolioShare.textContent = `${percentage.toFixed(1)}%`;
+            companyCount.textContent = sectorInfo.count;
+            avgInvestment.textContent = `$${((sectorInfo.value / sectorInfo.count) / 1000000).toFixed(1)}M`;
+            
+            // Clear and populate company list
+            companyList.innerHTML = '';
+            sectorInfo.companies.forEach(company => {
+                const companyItem = document.createElement('div');
+                companyItem.className = 'sector-company-item';
+                companyItem.innerHTML = `
+                    <div class="sector-company-name">${company}</div>
+                    <div class="sector-company-details">Portfolio company in ${sector}</div>
+                `;
+                companyList.appendChild(companyItem);
+            });
+            
+            // Show modal
+            modal.classList.add('active');
+        }
+        
+        // Animate pie chart (for Chart.js)
+        function animatePieChart() {
+            if (pieChartInstance) {
+                pieChartInstance.update('active');
+            }
+        }
+        
+        // Setup pie slice events
+        function setupPieSliceEvents(element, sector, data, percentage) {
+            element.addEventListener('mouseenter', (e) => {
+                showPieTooltip(e, sector, data, percentage);
+                // Transform is handled by CSS hover state
+            });
+            
+            element.addEventListener('mouseleave', () => {
+                hidePieTooltip();
+                // Transform is handled by CSS hover state
+            });
+            
+            element.addEventListener('mousemove', (e) => {
+                updatePieTooltipPosition(e);
+            });
+        }
+        
+        // Show pie tooltip
+        function showPieTooltip(event, sector, data, percentage) {
+            const tooltip = document.getElementById('portfolioTooltip');
+            const companiesList = data.companies.slice(0, 5).join(', ');
+            const moreText = data.companies.length > 5 ? ` +${data.companies.length - 5} more` : '';
+            
+            tooltip.innerHTML = `
+                <div class="tooltip-title">${sector} - ${percentage.toFixed(1)}%</div>
+                <div class="tooltip-companies">
+                    <strong>Companies:</strong> ${companiesList}${moreText}<br>
+                    <strong>Investment:</strong> $${(data.value / 1000000).toFixed(1)}M
+                </div>
+            `;
+            
+            tooltip.classList.add('show');
+            updatePieTooltipPosition(event);
+        }
+        
+        // Hide pie tooltip
+        function hidePieTooltip() {
+            const tooltip = document.getElementById('portfolioTooltip');
+            tooltip.classList.remove('show');
+        }
+        
+        // Update pie tooltip position
+        function updatePieTooltipPosition(event) {
+            const tooltip = document.getElementById('portfolioTooltip');
+            const rect = tooltip.getBoundingClientRect();
+            
+            let left = event.pageX + 10;
+            let top = event.pageY - rect.height - 10;
+            
+            // Keep tooltip within viewport
+            if (left + rect.width > window.innerWidth - 10) {
+                left = event.pageX - rect.width - 10;
+            }
+            if (top < 10) {
+                top = event.pageY + 10;
+            }
+            
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        }
+        
+        function displayResults(data) {
+            resultsContent.style.display = 'block';
+            
+            // Animate cards appearing
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animation = `fadeInUp 0.6s ease-out ${index * 0.1}s both`;
+            });
+            
+            // Display profile
+            document.getElementById('investorNameDisplay').textContent = data.profile.name;
+            document.getElementById('investorTitle').textContent = 
+                `${data.profile.title} at ${data.profile.firm}`;
+            document.getElementById('investorBio').textContent = data.profile.bio;
+            
+            // Display profile image with multiple fallback options
+            const profileImageDiv = document.getElementById('profileImage');
+            const imageUrl = data.profile.profile_image || '';
+            console.log('Profile image URL:', imageUrl);
+            
+            if (imageUrl && imageUrl !== '') {
+                const img = document.createElement('img');
+                img.alt = data.profile.name;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '14px';
+                
+                const fallbackImages = [
+                    imageUrl,
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(data.profile.name)}&size=300&background=ff8c00&color=fff&bold=true`,
+                    `https://robohash.org/${encodeURIComponent(data.profile.name)}?size=300x300`,
+                    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZmOGMwMCIvPjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW52ZXN0b3I8L3RleHQ+PC9zdmc+'
+                ];
+                
+                let imageIndex = 0;
+                
+                function tryNextImage() {
+                    if (imageIndex < fallbackImages.length) {
+                        console.log(`Trying image ${imageIndex + 1}:`, fallbackImages[imageIndex]);
+                        img.src = fallbackImages[imageIndex];
+                        imageIndex++;
+                    } else {
+                        profileImageDiv.innerHTML = `<span style="color: var(--text-muted);">👤 ${data.profile.name}</span>`;
+                    }
+                }
+                
+                img.onerror = function() {
+                    console.log('Image failed:', this.src);
+                    tryNextImage();
+                };
+                
+                img.onload = function() {
+                    console.log('Image loaded successfully:', this.src);
+                };
+                
+                profileImageDiv.innerHTML = '';
+                profileImageDiv.appendChild(img);
+                tryNextImage();
+            } else {
+                profileImageDiv.innerHTML = `<span style="color: var(--text-muted);">👤 ${data.profile.name}</span>`;
+            }
+            
+            // Display profile links
+            const profileLinks = document.getElementById('profileLinks');
+            profileLinks.innerHTML = '';
+            
+            const platformOrder = ['twitter', 'linkedin', 'medium', 'crunchbase', 'firm'];
+            const platformLabels = {
+                'twitter': '𝕏 Twitter',
+                'linkedin': '💼 LinkedIn', 
+                'medium': '📝 Medium',
+                'crunchbase': '🏢 Crunchbase',
+                'firm': '🏛️ Firm'
+            };
+            
+            for (const platform of platformOrder) {
+                const url = data.profile.profile_urls[platform];
+                if (url && url !== '') {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.target = '_blank';
+                    link.textContent = platformLabels[platform] || platform.charAt(0).toUpperCase() + platform.slice(1);
+                    profileLinks.appendChild(link);
+                }
+            }
+            
+            // Display portfolio
+            const portfolioGrid = document.getElementById('portfolioGrid');
+            portfolioGrid.innerHTML = '';
+            data.portfolio.forEach((company, index) => {
+                const item = document.createElement('div');
+                item.className = 'portfolio-item';
+                item.style.animation = `fadeInUp 0.6s ease-out ${index * 0.05}s both`;
+                
+                let linksHtml = '';
+                if (company.website || company.yahoo_finance_url) {
+                    linksHtml = '<div class="company-links">';
+                    if (company.website) {
+                        linksHtml += `<a href="${company.website}" target="_blank" rel="noopener noreferrer">
+                                        🌐 Website
+                                    </a>`;
+                    }
+                    if (company.yahoo_finance_url) {
+                        linksHtml += `<a href="${company.yahoo_finance_url}" target="_blank" rel="noopener noreferrer">
+                                        📈 ${company.stock_symbol || 'Stock'}
+                                    </a>`;
+                    }
+                    linksHtml += '</div>';
+                }
+                
+                // Build meta information only for non-empty and non-unknown fields
+                let metaItems = [];
+                if (company.sector && company.sector.trim() && company.sector.toLowerCase() !== 'unknown') {
+                    metaItems.push(`<span>${company.sector}</span>`);
+                }
+                if (company.stage && company.stage.trim() && 
+                    company.stage.toLowerCase() !== 'unknown' && 
+                    company.stage.toLowerCase() !== 'investment') {  // Also hide generic "Investment"
+                    metaItems.push(`<span>${company.stage}</span>`);
+                }
+                if (company.investment_date && company.investment_date.trim() && 
+                    company.investment_date !== '2024' &&  // Hide default year
+                    company.investment_date.toLowerCase() !== 'unknown') {
+                    metaItems.push(`<span>${company.investment_date}</span>`);
+                }
+                
+                // Only show meta div if there are items to display
+                let metaHtml = '';
+                if (metaItems.length > 0) {
+                    metaHtml = `<div class="meta">${metaItems.join('')}</div>`;
+                }
+                
+                // Only show description if it exists and is not empty
+                let descriptionHtml = '';
+                if (company.description && company.description.trim()) {
+                    descriptionHtml = `<p class="description">${company.description}</p>`;
+                }
+                
+                item.innerHTML = `
+                    <h4>${company.name}</h4>
+                    ${metaHtml}
+                    ${descriptionHtml}
+                    ${linksHtml}
+                `;
+                portfolioGrid.appendChild(item);
+            });
+            
+            // Create modern portfolio visualization
+            if (data.portfolio && data.portfolio.length > 0) {
+                console.log('Creating visualization with', data.portfolio.length, 'companies');
+                createPortfolioVisualization(data.portfolio);
+            } else {
+                console.log('No portfolio data for visualization');
+                document.getElementById('chartSection').style.display = 'none';
+            }
+            
+            // Display insights
+            const themesList = document.getElementById('themesList');
+            themesList.innerHTML = '';
+            data.insights.investment_themes.forEach((theme, index) => {
+                const tag = document.createElement('span');
+                tag.className = 'theme-tag';
+                tag.textContent = theme;
+                tag.style.animation = `fadeInUp 0.6s ease-out ${index * 0.1}s both`;
+                themesList.appendChild(tag);
+            });
+            
+            document.getElementById('investmentThesis').textContent = data.insights.investment_thesis;
+            
+            const quotesDiv = document.getElementById('notableQuotes');
+            quotesDiv.innerHTML = '';
+            // Limit to 5 most meaningful quotes
+            const quotesToShow = data.insights.notable_quotes.slice(0, 5);
+            quotesToShow.forEach(quote => {
+                const div = document.createElement('div');
+                div.className = 'quote';
+                div.textContent = `${quote}`;
+                quotesDiv.appendChild(div);
+            });
+            
+            // Display Medium articles
+            const mediumArticlesDiv = document.getElementById('mediumArticles');
+            mediumArticlesDiv.innerHTML = '';
+            if (data.medium_articles && data.medium_articles.length > 0) {
+                data.medium_articles.forEach(article => {
+                    const div = document.createElement('div');
+                    div.className = 'article';
+                    div.innerHTML = `
+                        <h4>${article.title}</h4>
+                        <p class="excerpt">${article.excerpt}</p>
+                        <div class="meta">
+                            <span>📅 ${article.date}</span>
+                            <span>⏱️ ${article.read_time}</span>
+                            ${article.claps > 0 ? `<span>👏 ${article.claps}</span>` : ''}
+                        </div>
+                    `;
+                    if (article.url) {
+                        div.style.cursor = 'pointer';
+                        div.onclick = () => window.open(article.url, '_blank');
+                    }
+                    mediumArticlesDiv.appendChild(div);
+                });
+            } else {
+                mediumArticlesDiv.innerHTML = '<p style="color: var(--text-muted);">No recent articles found</p>';
+            }
+            
+            // Display Latest News
+            const latestNewsDiv = document.getElementById('latestNews');
+            latestNewsDiv.innerHTML = '';
+            if (data.news && data.news.length > 0) {
+                data.news.forEach(newsItem => {
+                    const div = document.createElement('div');
+                    div.className = 'news-item';
+                    div.innerHTML = `
+                        <h4>${newsItem.title}</h4>
+                        <p class="excerpt">${newsItem.excerpt}</p>
+                        <div class="meta">
+                            <span class="source">📰 ${newsItem.source}</span>
+                            <span>📅 ${newsItem.date}</span>
+                        </div>
+                    `;
+                    if (newsItem.url) {
+                        div.onclick = () => window.open(newsItem.url, '_blank');
+                    }
+                    latestNewsDiv.appendChild(div);
+                });
+            } else {
+                latestNewsDiv.innerHTML = '<p style="color: var(--text-muted);">No recent news found</p>';
+            }
+        }
+        
+        function showError(message) {
+            error.style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // Add smooth scrolling for better UX
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add global mouse leave handler to hide tooltip when mouse leaves the page
+            document.addEventListener('mouseleave', () => {
+                const tooltip = document.getElementById('portfolioTooltip');
+                if (tooltip) hideTooltip(tooltip);
+            });
+            
+            // Add scroll handler to hide tooltip during scroll
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                const tooltip = document.getElementById('portfolioTooltip');
+                if (tooltip) hideTooltip(tooltip);
+                
+                // Clear existing timeout
+                clearTimeout(scrollTimeout);
+                
+                // Set new timeout to re-enable tooltip after scroll stops
+                scrollTimeout = setTimeout(() => {
+                    // Tooltip will be re-enabled on next mouse movement
+                }, 150);
+            });
+            
+            // Add intersection observer for animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all cards for scroll animations
+            document.querySelectorAll('.card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+        
+        // Function to handle investor tab selection
+        function selectInvestor(investorName) {
+            // Set the input value
+            const searchInput = document.getElementById('investorName');
+            if (searchInput) {
+                searchInput.value = investorName;
+                // Submit the form
+                const form = document.getElementById('searchForm');
+                if (form) {
+                    // Create a custom submit event to trigger the existing form handling
+                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                    form.dispatchEvent(submitEvent);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
