@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Investalytics</title>
+    <title>VC Lens</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -65,6 +65,16 @@
             text-align: center;
             margin-bottom: 60px;
             padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .header-logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease-out;
         }
         
         .header h1 {
@@ -1660,12 +1670,13 @@
             }
         }
     </style>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Investalytics</h1>
+            <img src="{{ url_for('static', filename='VC_LENS.png') }}" alt="VC Lens" class="header-logo">
+            <h1>VC Lens</h1>
             <p>AI-powered insights on venture capitalists and their investments</p>
         </div>
         
